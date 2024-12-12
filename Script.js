@@ -175,3 +175,35 @@ loop();
 setInterval(addHurdle, 2000);
 setInterval(addLava, 4000);
 setInterval(addCoin, 3000);
+
+function checkGameOver() {
+  if (raju.y > canvas.height || collisionDetected) {
+    gameOver = true;
+    document.getElementById("game-over").style.display = "block";
+    document.getElementById("final-score").textContent = score;
+  }
+}
+
+// Mobile button controls
+leftBtn.addEventListener("mousedown", () => (keys.left = true));
+leftBtn.addEventListener("mouseup", () => (keys.left = false));
+rightBtn.addEventListener("mousedown", () => (keys.right = true));
+rightBtn.addEventListener("mouseup", () => (keys.right = false));
+upBtn.addEventListener("mousedown", () => (keys.up = true));
+upBtn.addEventListener("mouseup", () => (keys.up = false));
+
+// Restart button functionality
+const restartBtn = document.getElementById("restart-btn");
+restartBtn.addEventListener("click", () => {
+  // Reset game state and restart
+  gameOver = false;
+  score = 0;
+  raju.x = 50;
+  raju.y = canvas.height - 60;
+  hurdles.length = 0;
+  lava.length = 0;
+  coins.length = 0;
+
+  document.getElementById("game-over").style.display = "none";
+  loop(); // Restart the game loop
+});
