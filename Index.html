@@ -3,16 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>funtioning-game-project</title>
+  <title>Raju's Endless Runner</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Game Canvas -->
   <canvas id="gameCanvas"></canvas>
+
+  <!-- Mobile Controls -->
   <div id="mobile-controls">
     <button id="left-btn">←</button>
     <button id="up-btn">↑</button>
     <button id="right-btn">→</button>
   </div>
+
+  <!-- Restart Button -->
+  <div id="game-over" style="display: none; text-align: center;">
+    <h1>Game Over</h1>
+    <p>Your Score: <span id="final-score"></span></p>
+    <button id="restart-btn">Restart</button>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
