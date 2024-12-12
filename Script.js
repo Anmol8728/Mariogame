@@ -1,154 +1,177 @@
-// script.js
-
-// Canvas Setup
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = 600;
+// Canvas setup
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = 800;
 canvas.height = 400;
 
-// Variables
-let raju = { x: 50, y: 300, width: 50, height: 50, dx: 0, dy: 0, grounded: true };
+// Global variables
 let gravity = 1;
-let score = 0;
 let gameOver = false;
-let hurdles = [];
-let enemies = [];
-let lava = [];
-let voidLine = canvas.height;
-let frameCount = 0;
+let score = 0;
 
-// Mobile Controls
-const leftBtn = document.getElementById('left-btn');
-const upBtn = document.getElementById('up-btn');
-const rightBtn = document.getElementById('right-btn');
-
-// Game Over Elements
-const gameOverScreen = document.getElementById('game-over');
-const restartBtn = document.getElementById('restart-btn');
-const finalScore = document.getElementById('final-score');
-
-// Input
+// Controls
 const keys = { left: false, right: false, up: false };
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft') keys.left = true;
-  if (e.key === 'ArrowRight') keys.right = true;
-  if (e.key === 'ArrowUp') keys.up = true;
+
+// Mobile control buttons
+const leftBtn = document.getElementById("left-btn");
+const rightBtn = document.getElementById("right-btn");
+const upBtn = document.getElementById("up-btn");
+
+// Raju character
+const raju = {
+  x: 50,
+  y: canvas.height - 60,
+  width: 40,
+  height: 50,
+  dx: 0,
+  dy: 0,
+  grounded: true,
+};
+
+// Game entities
+const hurdles = [];
+const lava = [];
+const coins = [];
+
+// Load images
+const images = {};
+function loadImages() {
+  const sources = {
+    raju: "assets/raju.png",
+    hurdle: "assets/hurdle.png",
+    lava: "assets/lava.png",
+    coin: "assets/coin.png",
+    background: "assets/background.png",
+  };
+
+  for (const key in sources) {
+    images[key] = new Image();
+    images[key].src = sources[key];
+  }
+}
+loadImages();
+
+// Controls (desktop)
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
+  if (e.key === "ArrowUp" || e.key === "w") keys.up = true;
+});
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+  if (e.key === "ArrowUp" || e.key === "w") keys.up = false;
 });
 
-document.addEventListener('keyup', (e) => {
-  if (e.key === 'ArrowLeft') keys.left = false;
-  if (e.key === 'ArrowRight') keys.right = false;
-  if (e.key === 'ArrowUp') keys.up = false;
-});
+// Controls (mobile)
+leftBtn.addEventListener("mousedown", () => (keys.left = true));
+leftBtn.addEventListener("mouseup", () => (keys.left = false));
+rightBtn.addEventListener("mousedown", () => (keys.right = true));
+rightBtn.addEventListener("mouseup", () => (keys.right = false));
+upBtn.addEventListener("mousedown", () => (keys.up = true));
+upBtn.addEventListener("mouseup", () => (keys.up = false));
 
-// Mobile Button Events
-leftBtn.addEventListener('mousedown', () => (keys.left = true));
-leftBtn.addEventListener('mouseup', () => (keys.left = false));
-rightBtn.addEventListener('mousedown', () => (keys.right = true));
-rightBtn.addEventListener('mouseup', () => (keys.right = false));
-upBtn.addEventListener('mousedown', () => (keys.up = true));
-upBtn.addEventListener('mouseup', () => (keys.up = false));
-
-// Restart Game
-restartBtn.addEventListener('click', restartGame);
-
-// Raju Movement
+// Movement logic
 function moveRaju() {
   if (keys.left) raju.dx = -5;
   if (keys.right) raju.dx = 5;
   if (keys.up && raju.grounded) {
-    raju.dy = -15;
+    raju.dy = -15; // Jump
     raju.grounded = false;
   }
 }
 
-// Draw Raju
-function drawRaju() {
-  ctx.fillStyle = 'blue';
-  ctx.fillRect(raju.x, raju.y, raju.width, raju.height);
-}
-
-// Update Raju
 function updateRaju() {
+  raju.dy += gravity; // Apply gravity
   raju.x += raju.dx;
   raju.y += raju.dy;
-  if (raju.y + raju.height < canvas.height) raju.dy += gravity; // Gravity
-  else {
+
+  // Check ground collision
+  if (raju.y + raju.height >= canvas.height) {
     raju.y = canvas.height - raju.height;
     raju.dy = 0;
     raju.grounded = true;
   }
 
-  raju.dx = 0; // Reset horizontal velocity
+  // Prevent going off the screen
+  if (raju.x < 0) raju.x = 0;
+  if (raju.x + raju.width > canvas.width) raju.x = canvas.width - raju.width;
+
+  // Reset horizontal velocity
+  raju.dx = 0;
 }
 
-// Hurdles
-function drawHurdles() {
-  ctx.fillStyle = 'red';
-  hurdles.forEach((hurdle) => {
-    hurdle.x -= 5;
-    ctx.fillRect(hurdle.x, hurdle.y, hurdle.width, hurdle.height);
+// Add hurdles
+function addHurdle() {
+  hurdles.push({
+    x: canvas.width,
+    y: canvas.height - 60,
+    width: 30,
+    height: 30,
   });
 }
 
-function addHurdle() {
-  hurdles.push({ x: canvas.width, y: canvas.height - 50, width: 50, height: 50 });
+// Add lava
+function addLava() {
+  lava.push({
+    x: canvas.width,
+    y: canvas.height - 20,
+    width: 40,
+    height: 20,
+  });
 }
 
-// Score
-function updateScore() {
-  score++;
-  ctx.fillStyle = 'black';
-  ctx.font = '20px Arial';
-  ctx.fillText(`Score: ${score}`, 10, 20);
+// Add coins
+function addCoin() {
+  coins.push({
+    x: canvas.width,
+    y: Math.random() * (canvas.height - 100),
+    width: 20,
+    height: 20,
+  });
 }
 
-// Check Game Over
-function checkGameOver() {
-  if (raju.y >= voidLine || hurdles.some((h) => checkCollision(raju, h))) {
-    endGame();
-  }
+// Draw elements
+function drawRaju() {
+  ctx.drawImage(images.raju, raju.x, raju.y, raju.width, raju.height);
+}
+function drawHurdles() {
+  hurdles.forEach((hurdle) => {
+    hurdle.x -= 5;
+    ctx.drawImage(images.hurdle, hurdle.x, hurdle.y, hurdle.width, hurdle.height);
+  });
+}
+function drawLava() {
+  lava.forEach((lavaBlock) => {
+    lavaBlock.x -= 5;
+    ctx.drawImage(images.lava, lavaBlock.x, lavaBlock.y, lavaBlock.width, lavaBlock.height);
+  });
+}
+function drawCoins() {
+  coins.forEach((coin) => {
+    coin.x -= 5;
+    ctx.drawImage(images.coin, coin.x, coin.y, coin.width, coin.height);
+  });
 }
 
-// Collision Detection
-function checkCollision(a, b) {
-  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
-}
-
-// End Game
-function endGame() {
-  gameOver = true;
-  finalScore.textContent = score;
-  gameOverScreen.classList.remove('hidden');
-}
-
-// Restart Game
-function restartGame() {
-  gameOver = false;
-  raju = { x: 50, y: 300, width: 50, height: 50, dx: 0, dy: 0, grounded: true };
-  score = 0;
-  hurdles = [];
-  gameOverScreen.classList.add('hidden');
-  loop();
-}
-
-// Game Loop
+// Game loop
 function loop() {
   if (gameOver) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  frameCount++;
-  if (frameCount % 100 === 0) addHurdle(); // Add hurdles periodically
-
   moveRaju();
   updateRaju();
   drawRaju();
   drawHurdles();
-  updateScore();
-  checkGameOver();
+  drawLava();
+  drawCoins();
 
   requestAnimationFrame(loop);
 }
 
+// Start game
 loop();
+setInterval(addHurdle, 2000);
+setInterval(addLava, 4000);
+setInterval(addCoin, 3000);
