@@ -331,3 +331,10 @@ function detectCollision(a, b) {
            a.y + a.height > b.y;    //a's bottom left corner passes b's top left corner
 
 }
+
+document.addEventListener("click", () => {
+        if (!gameOver && dino.y == dinoY) {
+            velocityY = -10; // Trigger jump on click
+        }
+    });
+}; 
