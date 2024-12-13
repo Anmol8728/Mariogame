@@ -332,10 +332,37 @@ function detectCollision(a, b) {
 
 }
 
-document.addEventListener("keydown", (e) => {
-    console.log("Key pressed:", e.code);
-});
+window.onload = function() {
+    board = document.getElementById("board");
+    board.height = boardHeight;
+    board.width = boardWidth;
 
-document.addEventListener("click", () => {
-    console.log("Screen clicked");
-});
+    context = board.getContext("2d");
+
+    dinoImg = new Image();
+    dinoImg.src = "./img/dino.png";
+    dinoImg.onload = function() {
+        context.drawImage(dinoImg, dino.x, dino.y, dino.width, dino.height);
+    };
+
+    cactus1Img = new Image();
+    cactus1Img.src = "./img/cactus1.png";
+
+    cactus2Img = new Image();
+    cactus2Img.src = "./img/cactus2.png";
+
+    cactus3Img = new Image();
+    cactus3Img.src = "./img/cactus3.png";
+
+    requestAnimationFrame(update);
+    setInterval(placeCactus, 1000);
+
+    document.addEventListener("keydown", moveDino);
+
+    // Add click event for jumping
+    document.addEventListener("click", () => {
+        if (!gameOver && dino.y == dinoY) {
+            velocityY = -10; // Trigger jump on click
+        }
+    });
+};
