@@ -332,9 +332,10 @@ function detectCollision(a, b) {
 
 }
 
+document.addEventListener("keydown", (e) => {
+    console.log("Key pressed:", e.code);
+});
+
 document.addEventListener("click", () => {
-        if (!gameOver && dino.y == dinoY) {
-            velocityY = -10; // Trigger jump on click
-        }
-    });
-}; 
+    console.log("Screen clicked");
+});
